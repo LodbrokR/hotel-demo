@@ -1,0 +1,116 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+<Layout title="Reservas - Hotel Boutique">
+    <section class="pt-32 pb-24 bg-brand-50 min-h-[80vh] flex items-center">
+        <div class="max-w-3xl mx-auto px-6 w-full">
+            <div class="text-center mb-12">
+                <span class="text-brand-900 font-bold tracking-widest uppercase text-sm mb-3 block">Estadía de Lujo</span>
+                <h1 class="text-4xl md:text-5xl font-['Playfair_Display'] font-bold text-slate-900 mb-4">Reserva tu Habitación</h1>
+                <p class="text-slate-600 text-lg max-w-xl mx-auto">Vive una experiencia inolvidable. Completa tus datos y nos pondremos en contacto para confirmar tu estadía.</p>
+            </div>
+            
+            <div class="bg-white p-8 md:p-12 rounded-3xl shadow-2xl shadow-brand-900/10 border border-brand-100">
+                <form id="reservaForm" class="space-y-8">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div>
+                            <label class="block text-xs uppercase tracking-tighter text-slate-400 font-bold mb-3">Fecha de Ingreso</label>
+                            <input name="Check-in" type="date" required class="w-full border-b-2 border-slate-100 py-3 bg-transparent focus:border-brand-900 transition-colors outline-none font-medium text-slate-800">
+                        </div>
+                        <div>
+                            <label class="block text-xs uppercase tracking-tighter text-slate-400 font-bold mb-3">Fecha de Salida</label>
+                            <input name="Check-out" type="date" required class="w-full border-b-2 border-slate-100 py-3 bg-transparent focus:border-brand-900 transition-colors outline-none font-medium text-slate-800">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div>
+                            <label class="block text-xs uppercase tracking-tighter text-slate-400 font-bold mb-3">Tipo de Habitación</label>
+                            <select name="Habitacion" required class="w-full border-b-2 border-slate-100 py-3 bg-transparent focus:border-brand-900 transition-colors outline-none font-medium text-slate-800">
+                                <option value="" disabled selected>Seleccionar</option>
+                                <option>Suite Presidencial</option>
+                                <option>Habitación Deluxe</option>
+                                <option>Suite Vista al Mar</option>
+                                <option>Habitación Doble Estándar</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs uppercase tracking-tighter text-slate-400 font-bold mb-3">Huéspedes</label>
+                            <select name="Huespedes" required class="w-full border-b-2 border-slate-100 py-3 bg-transparent focus:border-brand-900 transition-colors outline-none font-medium text-slate-800">
+                                <option>1 Persona</option>
+                                <option selected>2 Personas</option>
+                                <option>3 Personas</option>
+                                <option>4+ Personas</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div>
+                            <label class="block text-xs uppercase tracking-tighter text-slate-400 font-bold mb-3">Nombre Completo</label>
+                            <input name="Nombre" type="text" placeholder="Ej: Maria García" required class="w-full border-b-2 border-slate-100 py-3 bg-transparent focus:border-brand-900 transition-colors outline-none font-medium text-slate-800">
+                        </div>
+                        <div>
+                            <label class="block text-xs uppercase tracking-tighter text-slate-400 font-bold mb-3">Email</label>
+                            <input name="Email" type="email" placeholder="tu@email.com" required class="w-full border-b-2 border-slate-100 py-3 bg-transparent focus:border-brand-900 transition-colors outline-none font-medium text-slate-800">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs uppercase tracking-tighter text-slate-400 font-bold mb-3">Solicitudes Especiales</label>
+                        <textarea name="Comentarios" rows="3" placeholder="Alergias, transfer, late check-out..." class="w-full border-b-2 border-slate-100 py-3 bg-transparent focus:border-brand-900 transition-colors outline-none font-medium text-slate-800 resize-none"></textarea>
+                    </div>
+
+                    <div class="pt-6">
+                        <button type="submit" id="submitBtn" class="w-full bg-brand-900 hover:bg-brand-600 text-white font-bold tracking-widest uppercase text-sm py-5 rounded-full transition-all shadow-xl hover:shadow-brand-900/20 active:scale-[0.98]">
+                            Confirmar Solicitud de Reserva
+                        </button>
+                        <p id="formStatus" class="text-sm font-bold text-emerald-600 hidden text-center mt-6 p-4 bg-emerald-50 rounded-2xl border border-emerald-100">
+                            ¡Solicitud recibida! Nuestro concierge te contactará en breve.
+                        </p>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
+</Layout>
+
+<script>
+	const form = document.getElementById('reservaForm') as HTMLFormElement;
+	const submitBtn = document.getElementById('submitBtn') as HTMLButtonElement;
+	const formStatus = document.getElementById('formStatus');
+
+	if (form) {
+		form.addEventListener('submit', async (e) => {
+			e.preventDefault();
+			
+			const originalText = submitBtn.innerText;
+			submitBtn.innerText = 'PROCESANDO SOLICITUD...';
+			submitBtn.disabled = true;
+
+			try {
+				const formData = new FormData(form);
+				const res = await fetch('/api/send-email', {
+					method: 'POST',
+					body: formData
+				});
+
+				if (res.ok) {
+					form.reset();
+					formStatus?.classList.remove('hidden');
+					window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+					setTimeout(() => {
+						formStatus?.classList.add('hidden');
+					}, 8000);
+				} else {
+					alert('Hubo un inconveniente al procesar tu reserva. Por favor, intenta de nuevo.');
+				}
+			} catch (error) {
+				alert('Error de conexión con el servidor.');
+			} finally {
+				submitBtn.innerText = originalText;
+				submitBtn.disabled = false;
+			}
+		});
+	}
+</script>
