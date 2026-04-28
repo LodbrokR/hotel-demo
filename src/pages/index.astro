@@ -15,27 +15,34 @@ import Layout from '../layouts/Layout.astro';
 			<h1 class="text-5xl md:text-7xl font-light mb-8 drop-shadow-lg leading-tight">Desconecta para <br/><span class="font-semibold">conectar.</span></h1>
 			
 			<!-- Booking Bar -->
-			<div class="bg-white/95 backdrop-blur-xl p-4 md:p-6 rounded-none md:rounded-full shadow-2xl flex flex-col md:flex-row items-center gap-4 text-brand-900 w-full md:w-max">
+			<form id="reservaForm" class="bg-white/95 backdrop-blur-xl p-4 md:p-6 rounded-none md:rounded-full shadow-2xl flex flex-col md:flex-row items-center gap-4 text-brand-900 w-full md:w-max relative">
 				<div class="flex flex-col px-4 w-full md:w-auto border-b md:border-b-0 md:border-r border-brand-100 pb-2 md:pb-0">
 					<label class="text-xs uppercase tracking-widest text-brand-500 font-semibold mb-1">Llegada</label>
-					<input type="date" class="bg-transparent outline-none font-medium text-sm" value="2026-05-01">
+					<input type="date" name="Llegada" class="bg-transparent outline-none font-medium text-sm" value="2026-05-01">
 				</div>
 				<div class="flex flex-col px-4 w-full md:w-auto border-b md:border-b-0 md:border-r border-brand-100 pb-2 md:pb-0">
 					<label class="text-xs uppercase tracking-widest text-brand-500 font-semibold mb-1">Salida</label>
-					<input type="date" class="bg-transparent outline-none font-medium text-sm" value="2026-05-04">
+					<input type="date" name="Salida" class="bg-transparent outline-none font-medium text-sm" value="2026-05-04">
 				</div>
 				<div class="flex flex-col px-4 w-full md:w-auto">
 					<label class="text-xs uppercase tracking-widest text-brand-500 font-semibold mb-1">Huéspedes</label>
-					<select class="bg-transparent outline-none font-medium text-sm cursor-pointer">
+					<select name="Huéspedes" class="bg-transparent outline-none font-medium text-sm cursor-pointer">
 						<option>2 Adultos</option>
 						<option>1 Adulto</option>
 						<option>Familia (4)</option>
 					</select>
 				</div>
-				<button class="w-full md:w-auto bg-brand-900 text-white px-8 py-4 rounded-full uppercase tracking-widest text-sm font-semibold hover:bg-brand-600 transition-colors mt-2 md:mt-0">
-					Buscar
+				<button type="submit" id="submitBtn" class="w-full md:w-auto bg-brand-900 text-white px-8 py-4 rounded-full uppercase tracking-widest text-sm font-semibold hover:bg-brand-600 transition-colors mt-2 md:mt-0 whitespace-nowrap">
+					Consultar
 				</button>
-			</div>
+				<input type="hidden" name="_subject" value="Nueva consulta de reserva de Hotel">
+				<input type="hidden" name="_captcha" value="false">
+				
+				<!-- Success Message (Absolute positioned above or below bar) -->
+				<div id="formStatus" class="hidden absolute -bottom-12 left-0 w-full text-center text-sm font-semibold text-white drop-shadow-md bg-emerald-500/90 py-2 rounded-full backdrop-blur-md">
+					¡Consulta enviada! Te responderemos pronto.
+				</div>
+			</form>
 		</div>
 	</section>
 
@@ -82,3 +89,45 @@ import Layout from '../layouts/Layout.astro';
 		</div>
 	</section>
 </Layout>
+
+<script>
+	const form = document.getElementById('reservaForm') as HTMLFormElement;
+	const submitBtn = document.getElementById('submitBtn') as HTMLButtonElement;
+	const formStatus = document.getElementById('formStatus');
+
+	if (form) {
+		form.addEventListener('submit', async (e) => {
+			e.preventDefault();
+			
+			const originalText = submitBtn.innerText;
+			submitBtn.innerText = 'Enviando...';
+			submitBtn.disabled = true;
+
+			try {
+				const formData = new FormData(form);
+				const res = await fetch('https://formsubmit.co/ajax/lmedina.web@gmail.com', {
+					method: 'POST',
+					headers: {
+						'Accept': 'application/json'
+					},
+					body: formData
+				});
+
+				if (res.ok) {
+					form.reset();
+					formStatus?.classList.remove('hidden');
+					setTimeout(() => {
+						formStatus?.classList.add('hidden');
+					}, 5000);
+				} else {
+					alert('Hubo un error al procesar la consulta. Inténtalo nuevamente.');
+				}
+			} catch (error) {
+				alert('Hubo un error de conexión.');
+			} finally {
+				submitBtn.innerText = originalText;
+				submitBtn.disabled = false;
+			}
+		});
+	}
+</script>
